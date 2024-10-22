@@ -10,18 +10,7 @@ func part1(content string) int {
 	houses["(0, 0)"] = 0
 	var x, y int
 	for _, v := range content {
-		if v == '^' {
-			x++
-		}
-		if v == 'v' {
-			x--
-		}
-		if v == '>' {
-			y++
-		}
-		if v == '<' {
-			y--
-		}
+		checker(&x, &y, v)
 		houses[fmt.Sprintf("(%d, %d)", x, y)] = 0
 	}
 	return len(houses)

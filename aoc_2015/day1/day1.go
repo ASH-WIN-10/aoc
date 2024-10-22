@@ -1,10 +1,8 @@
 package main
 
 import (
-	// "bufio"
 	"fmt"
 	"os"
-	// "strconv"
 )
 
 func part1() {
