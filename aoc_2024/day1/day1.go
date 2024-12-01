@@ -3,33 +3,38 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"slices"
 	"strconv"
 	"strings"
 )
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func part1(leftList, rightList []int) int {
 	totalDistance := 0
 	for i := 0; i < len(leftList); i++ {
-		totalDistance += int(math.Abs(float64(leftList[i] - rightList[i])))
+		totalDistance += abs(leftList[i] - rightList[i])
 	}
 
 	return totalDistance
 }
 
 func part2(leftList, rightList []int) int {
+	mp := make(map[int]int)
 	similarityScore := 0
-	for _, leftNum := range leftList {
-		appears := 0
-		for _, rightNum := range rightList {
-			if leftNum == rightNum {
-				appears++
-			}
-		}
 
-		similarityScore += leftNum * appears
+	for _, rightNum := range rightList {
+		mp[rightNum]++
+	}
+
+	for _, leftNum := range leftList {
+		similarityScore += leftNum * mp[leftNum]
 	}
 
 	return similarityScore
@@ -65,6 +70,6 @@ func main() {
 	slices.Sort(leftList)
 	slices.Sort(rightList)
 
-	// fmt.Println(part1(leftList, rightList))
-	fmt.Println(part2(leftList, rightList))
+	fmt.Println("part1: ", part1(leftList, rightList))
+	fmt.Println("part2: ", part2(leftList, rightList))
 }
