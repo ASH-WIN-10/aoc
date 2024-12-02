@@ -48,6 +48,8 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer file.Close()
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
