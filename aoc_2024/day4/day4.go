@@ -10,22 +10,22 @@ type Point struct {
 	x, y int
 }
 
-func (p Point) getPoint(arr []string) string {
+func (p Point) getValue(arr []string) string {
 	return string(arr[p.y][p.x])
 }
 
 func (p Point) verticalCheck(lines []string) bool {
 	XMAXappears := false
-	var upStr string
+	var s string
 
 	if p.y+3 < len(lines) {
 		for i := 0; i < 4; i++ {
 			point := Point{p.x, p.y + i}
-			upStr += point.getPoint(lines)
+			s += point.getValue(lines)
 		}
 	}
 
-	if upStr == "XMAS" || upStr == "SAMX" {
+	if s == "XMAS" || s == "SAMX" {
 		XMAXappears = true
 	}
 
@@ -36,17 +36,17 @@ func (p Point) diagonalCheck(lines []string) int {
 	XMAXappearances := 0
 	var downLeftStr, downRightStr string
 
-	if p.y-3 >= 0 && p.x-3 >= 0 {
+	if p.y+3 < len(lines) && p.x-3 >= 0 {
 		for i := 0; i < 4; i++ {
-			point := Point{p.x - i, p.y - i}
-			downLeftStr += point.getPoint(lines)
+			point := Point{p.x - i, p.y + i}
+			downLeftStr += point.getValue(lines)
 		}
 	}
 
-	if p.y-3 >= 0 && p.x+3 < len(lines[0]) {
+	if p.y+3 < len(lines) && p.x+3 < len(lines[0]) {
 		for i := 0; i < 4; i++ {
-			point := Point{p.x + i, p.y - i}
-			downRightStr += point.getPoint(lines)
+			point := Point{p.x + i, p.y + i}
+			downRightStr += point.getValue(lines)
 		}
 	}
 
@@ -60,6 +60,32 @@ func (p Point) diagonalCheck(lines []string) int {
 
 	return XMAXappearances
 }
+
+func (p Point) checkX(lines []string) bool {
+	isX := false
+	var xmasRight, xmasLeft string
+
+	if p.y+2 < len(lines) && p.x+2 < len(lines[0]) {
+		for i := 0; i <= 2; i++ {
+			point := Point{p.x + i, p.y + i}
+			xmasRight += point.getValue(lines)
+		}
+
+		p.x += 2
+		for i := 0; i <= 2; i++ {
+			point := Point{p.x - i, p.y + i}
+			xmasLeft += point.getValue(lines)
+		}
+	}
+
+	if (xmasLeft == "MAS" || xmasLeft == "SAM") && (xmasRight == "MAS" || xmasRight == "SAM") {
+		isX = true
+	}
+
+	return isX
+}
+
+/* Solution */
 
 func part1(lines []string) int {
 	wordCount := 0
@@ -78,10 +104,12 @@ func part1(lines []string) int {
 				continue
 			}
 
-			if point.verticalCheck(lines) {
-				wordCount += 1
+			if point.getValue(lines) == "X" || point.getValue(lines) == "S" {
+				if point.verticalCheck(lines) {
+					wordCount += 1
+				}
+				wordCount += point.diagonalCheck(lines)
 			}
-			wordCount += point.diagonalCheck(lines)
 		}
 	}
 
@@ -89,11 +117,28 @@ func part1(lines []string) int {
 }
 
 func part2(lines []string) int {
-	for _, line := range lines {
-		fmt.Println(line)
+	wordCount := 0
+	for y, line := range lines {
+		for x := range line {
+			point := Point{x, y}
+
+			if point.x < 0 || point.y < 0 {
+				continue
+			}
+
+			if point.x >= len(lines) || point.y >= len(line) {
+				continue
+			}
+
+			if point.getValue(lines) == "M" || point.getValue(lines) == "S" {
+				if point.checkX(lines) {
+					wordCount += 1
+				}
+			}
+		}
 	}
 
-	return 0
+	return wordCount
 }
 
 func main() {
@@ -108,5 +153,5 @@ func main() {
 	lines = lines[:len(lines)-1]
 
 	fmt.Println("\npart1: ", part1(lines))
-	// fmt.Println("\npart2: ", part2(lines))
+	fmt.Println("\npart2: ", part2(lines))
 }
