@@ -46,7 +46,33 @@ func part1(rules map[string][]string, pageNums [][]string) (int, [][]string) {
 }
 
 func part2(rules map[string][]string, incorrectPageNums [][]string) int {
-	return 0
+	sumOfMiddlePageNums := 0
+	for i := 0; i < len(incorrectPageNums); i++ {
+		length := len(incorrectPageNums[i])
+		for j := 0; j < length; j++ {
+			for k := 0; k < length-1; k++ {
+				num1 := incorrectPageNums[i][k]
+				num2 := incorrectPageNums[i][k+1]
+
+				if _, ok := rules[num1]; !ok {
+					if _, ok := rules[num2]; !ok {
+						continue
+					}
+					incorrectPageNums[i][k], incorrectPageNums[i][k+1] = num2, num1
+				} else {
+					if slices.Contains(rules[num1], num2) {
+						continue
+					}
+					incorrectPageNums[i][k], incorrectPageNums[i][k+1] = num2, num1
+				}
+			}
+		}
+
+		midVal, _ := strconv.Atoi(incorrectPageNums[i][length/2])
+		sumOfMiddlePageNums += midVal
+	}
+
+	return sumOfMiddlePageNums
 }
 
 func main() {
