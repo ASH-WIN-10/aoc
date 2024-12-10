@@ -79,10 +79,22 @@ func reverseDirection(currentDirection rune) rune {
 	return 'U'
 }
 
+func placeObstacle(mappedArea []string, position Point) []string {
+	updatedMappedArea := make([]string, len(mappedArea))
+	copy(updatedMappedArea, mappedArea)
+
+	updatedMappedArea[position.y] = updatedMappedArea[position.y][:position.x] + "#" + updatedMappedArea[position.y][position.x+1:]
+
+	return updatedMappedArea
+}
+
 func walk(mappedArea []string,
 	currentPosition Point,
 	currentDirection rune,
 	visitedPositions map[Point]int,
+	loopPositions map[Point]int,
+	placedObstaclePosition Point,
+	visitedPositionWithDirection map[Point]map[rune]int,
 ) WalkFunc {
 	// Check out of bounds
 	if currentPosition.x < 0 || currentPosition.x >= len(mappedArea[0]) ||
@@ -95,43 +107,73 @@ func walk(mappedArea []string,
 		currentPosition = currentPosition.move(reverseDirection(currentDirection))
 		currentDirection = rotateDirection(currentDirection)
 
-		return walk(mappedArea, currentPosition, currentDirection, visitedPositions)
+		return walk(mappedArea, currentPosition, currentDirection, visitedPositions, loopPositions, placedObstaclePosition, visitedPositionWithDirection)
 	}
 
 	// Check if current position is a space or starting position
 	if currentPosition.getPointValue(mappedArea) == "." || currentPosition.getPointValue(mappedArea) == "^" {
+		// Check if it's a loop
+		if visitedPositions[currentPosition] > 1 &&
+			visitedPositionWithDirection[currentPosition][currentDirection] > 1 {
+			loopPositions[placedObstaclePosition]++
+			return nil
+		}
+
+		if _, ok := visitedPositionWithDirection[currentPosition]; !ok {
+			visitedPositionWithDirection[currentPosition] = make(map[rune]int)
+		}
+		visitedPositionWithDirection[currentPosition][currentDirection]++
+
 		visitedPositions[currentPosition]++
 		currentPosition = currentPosition.move(currentDirection)
 
-		return walk(mappedArea, currentPosition, currentDirection, visitedPositions)
+		return walk(mappedArea, currentPosition, currentDirection, visitedPositions, loopPositions, placedObstaclePosition, visitedPositionWithDirection)
 	}
 
-	return walk(mappedArea, currentPosition, currentDirection, visitedPositions)
+	return walk(mappedArea, currentPosition, currentDirection, visitedPositions, loopPositions, placedObstaclePosition, visitedPositionWithDirection)
 }
 
-func part1(mappedArea []string) int {
+func part1(mappedArea []string) (int, map[Point]int) {
 	visitedPositions := make(map[Point]int)
 
-	walk(mappedArea, getStartingPosition(mappedArea), 'U', visitedPositions)
-
-	updatedMappedArea := make([]string, len(mappedArea))
-	copy(updatedMappedArea, mappedArea)
+	walk(mappedArea,
+		getStartingPosition(mappedArea),
+		'U',
+		visitedPositions,
+		map[Point]int{},
+		Point{},
+		map[Point]map[rune]int{},
+	)
 
 	result := 0
-	for k, _ := range visitedPositions {
-		updatedMappedArea[k.y] = updatedMappedArea[k.y][:k.x] + "X" + updatedMappedArea[k.y][k.x+1:]
+	for range visitedPositions {
 		result++
 	}
 
-	// for _, row := range updatedMappedArea {
-	// 	fmt.Println(row)
-	// }
-
-	return result
+	return result, visitedPositions
 }
 
-func part2(mappedArea []string) int {
-	return 0
+func part2(mappedArea []string, visitedPositions map[Point]int) int {
+	loopPositions := make(map[Point]int)
+
+	for k, _ := range visitedPositions {
+		updatedMappedArea := placeObstacle(mappedArea, k)
+		walk(updatedMappedArea,
+			getStartingPosition(mappedArea),
+			'U',
+			map[Point]int{},
+			loopPositions,
+			k,
+			map[Point]map[rune]int{},
+		)
+	}
+
+	result := 0
+	for range loopPositions {
+		result++
+	}
+
+	return result
 }
 
 func main() {
@@ -145,6 +187,7 @@ func main() {
 	lines := strings.Split(string(content), "\n")
 	lines = lines[:len(lines)-1]
 
-	fmt.Println("\npart1: ", part1(lines))
-	// fmt.Println("\npart2: ", part2(lines))
+	part1Result, visitedPositions := part1(lines)
+	fmt.Println("\npart1: ", part1Result)
+	fmt.Println("\npart2: ", part2(lines, visitedPositions))
 }
