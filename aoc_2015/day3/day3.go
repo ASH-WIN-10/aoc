@@ -40,8 +40,7 @@ func part2(content string) int {
 	for i, v := range content {
 		if (i+1)%2 == 0 {
 			checker(&x1, &y1, v)
-		}
-		if (i+1)%2 != 0 {
+		} else {
 			checker(&x2, &y2, v)
 		}
 		houses[fmt.Sprintf("(%d, %d)", x1, y1)] = 0
