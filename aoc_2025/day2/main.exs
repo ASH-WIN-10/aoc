@@ -13,11 +13,11 @@ defmodule Solution do
   end
 
   defp find_invalid_ids(range, fun) do
-    [first_id, last_id] = String.split(range, "-")
-    first = String.to_integer(first_id)
-    last = String.to_integer(last_id)
+    [first_id, last_id] =
+      String.split(range, "-")
+      |> then(fn [a, b] -> [String.to_integer(a), String.to_integer(b)] end)
 
-    first..last
+    first_id..last_id
     |> Stream.filter(fun)
     |> Enum.sum()
   end
